@@ -16,6 +16,7 @@
 #define RCL__ERROR_HANDLING_H_
 
 #include "rcutils/error_handling.h"
+#include "rcutils/format_string.h"
 
 /// The error handling in RCL is just an alias to the error handling in rcutils.
 /**
