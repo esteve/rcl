@@ -169,8 +169,7 @@ static rcl_ret_t add_name_to_ns(
       sep_str = PARAMETER_NS_SEPERATOR;
       break;
     default:
-      res = RCL_RET_ERROR;
-      break;
+      return RCL_RET_ERROR;
   }
 
   if (RCL_RET_OK == res) {
@@ -240,8 +239,7 @@ static rcl_ret_t rem_name_from_ns(
       sep_str = PARAMETER_NS_SEPERATOR;
       break;
     default:
-      res = RCL_RET_ERROR;
-      break;
+      return RCL_RET_ERROR;
   }
 
   if (RCL_RET_OK == res) {
