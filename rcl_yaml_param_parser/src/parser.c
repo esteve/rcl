@@ -155,7 +155,6 @@ static rcl_ret_t add_name_to_ns(
   size_t ns_len;
   size_t sep_len;
   size_t tot_len;
-  rcl_ret_t res = RCL_RET_OK;
 
   switch (namespace_type) {
     case NS_TYPE_NODE:
@@ -172,44 +171,42 @@ static rcl_ret_t add_name_to_ns(
       return RCL_RET_ERROR;
   }
 
-  if (RCL_RET_OK == res) {
-    /// Add a name to ns
-    if (NULL == name) {
-      return RCL_RET_INVALID_ARGUMENT;
-    }
-    if (0U == *cur_count) {
-      cur_ns = rcutils_strdup(name, allocator);
-      if (NULL == cur_ns) {
-        return RCL_RET_BAD_ALLOC;
-      }
-    } else {
-      ns_len = strlen(cur_ns);
-      name_len = strlen(name);
-      sep_len = strlen(sep_str);
-      tot_len = ns_len + name_len + sep_len + 1U;
-
-      if (tot_len > MAX_STRING_SIZE) {
-        RCL_SET_ERROR_MSG("New namespace string is exceeding max string size",
-          allocator);
-        return RCL_RET_ERROR;
-      }
-      cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
-      if (NULL == cur_ns) {
-        return RCL_RET_BAD_ALLOC;
-      }
-      memmove((cur_ns + ns_len), sep_str, sep_len);
-      memmove((cur_ns + ns_len + sep_len), name, name_len);
-      cur_ns[tot_len - 1U] = '\0';
-    }
-    *cur_count = (*cur_count + 1U);
-
-    if (NS_TYPE_NODE == namespace_type) {
-      ns_tracker->node_ns = cur_ns;
-    } else {
-      ns_tracker->parameter_ns = cur_ns;
-    }
+  /// Add a name to ns
+  if (NULL == name) {
+    return RCL_RET_INVALID_ARGUMENT;
   }
-  return res;
+  if (0U == *cur_count) {
+    cur_ns = rcutils_strdup(name, allocator);
+    if (NULL == cur_ns) {
+      return RCL_RET_BAD_ALLOC;
+    }
+  } else {
+    ns_len = strlen(cur_ns);
+    name_len = strlen(name);
+    sep_len = strlen(sep_str);
+    tot_len = ns_len + name_len + sep_len + 1U;
+
+    if (tot_len > MAX_STRING_SIZE) {
+      RCL_SET_ERROR_MSG("New namespace string is exceeding max string size",
+        allocator);
+      return RCL_RET_ERROR;
+    }
+    cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
+    if (NULL == cur_ns) {
+      return RCL_RET_BAD_ALLOC;
+    }
+    memmove((cur_ns + ns_len), sep_str, sep_len);
+    memmove((cur_ns + ns_len + sep_len), name, name_len);
+    cur_ns[tot_len - 1U] = '\0';
+  }
+  *cur_count = (*cur_count + 1U);
+
+  if (NS_TYPE_NODE == namespace_type) {
+    ns_tracker->node_ns = cur_ns;
+  } else {
+    ns_tracker->parameter_ns = cur_ns;
+  }
+  return RCL_RET_OK;
 }
 
 ///
@@ -225,7 +222,6 @@ static rcl_ret_t rem_name_from_ns(
   char * sep_str;
   size_t ns_len;
   size_t tot_len;
-  rcl_ret_t res = RCL_RET_OK;
 
   switch (namespace_type) {
     case NS_TYPE_NODE:
@@ -242,46 +238,44 @@ static rcl_ret_t rem_name_from_ns(
       return RCL_RET_ERROR;
   }
 
-  if (RCL_RET_OK == res) {
-    /// Remove last name from ns
-    if (*cur_count > 0U) {
-      if (1U == *cur_count) {
-        allocator.deallocate(cur_ns, allocator.state);
-        cur_ns = NULL;
-      } else {
-        ns_len = strlen(cur_ns);
-        char * last_idx = NULL;
-        char * next_str = NULL;
-        const char * end_ptr = (cur_ns + ns_len);
-
-        next_str = strstr(cur_ns, sep_str);
-        while (NULL != next_str) {
-          if (next_str > end_ptr) {
-            RCL_SET_ERROR_MSG("Internal error. Crossing arrau boundary", allocator);
-            return RCL_RET_ERROR;
-          }
-          last_idx = next_str;
-          next_str = (next_str + strlen(sep_str));
-          next_str = strstr(next_str, sep_str);
-        }
-        if (NULL != last_idx) {
-          tot_len = ((size_t)(last_idx - cur_ns) + 1U);
-          cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
-          if (NULL == cur_ns) {
-            return RCL_RET_BAD_ALLOC;
-          }
-          cur_ns[tot_len - 1U] = '\0';
-        }
-      }
-      *cur_count = (*cur_count - 1U);
-    }
-    if (NS_TYPE_NODE == namespace_type) {
-      ns_tracker->node_ns = cur_ns;
+  /// Remove last name from ns
+  if (*cur_count > 0U) {
+    if (1U == *cur_count) {
+      allocator.deallocate(cur_ns, allocator.state);
+      cur_ns = NULL;
     } else {
-      ns_tracker->parameter_ns = cur_ns;
+      ns_len = strlen(cur_ns);
+      char * last_idx = NULL;
+      char * next_str = NULL;
+      const char * end_ptr = (cur_ns + ns_len);
+
+      next_str = strstr(cur_ns, sep_str);
+      while (NULL != next_str) {
+        if (next_str > end_ptr) {
+          RCL_SET_ERROR_MSG("Internal error. Crossing arrau boundary", allocator);
+          return RCL_RET_ERROR;
+        }
+        last_idx = next_str;
+        next_str = (next_str + strlen(sep_str));
+        next_str = strstr(next_str, sep_str);
+      }
+      if (NULL != last_idx) {
+        tot_len = ((size_t)(last_idx - cur_ns) + 1U);
+        cur_ns = allocator.reallocate(cur_ns, tot_len, allocator.state);
+        if (NULL == cur_ns) {
+          return RCL_RET_BAD_ALLOC;
+        }
+        cur_ns[tot_len - 1U] = '\0';
+      }
     }
+    *cur_count = (*cur_count - 1U);
   }
-  return res;
+  if (NS_TYPE_NODE == namespace_type) {
+    ns_tracker->node_ns = cur_ns;
+  } else {
+    ns_tracker->parameter_ns = cur_ns;
+  }
+  return RCL_RET_OK;
 }
 
 ///
